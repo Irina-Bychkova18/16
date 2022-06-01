@@ -11,7 +11,8 @@ class Main(tk.Frame):
         super().__init__(root)
 
         self.btn_open_dialog = None
-        self.tree = ttk.Treeview(self, columns=('user_id', 'name', 'sex', 'old', 'score'), height=15, show='headings')
+        self.tree = ttk.Treeview(self, columns=('code', 'name_of_the_medicine', 'application', 'quantity', 'price'
+                                                , 'country_of_origin'), height=15, show='headings')
         self.refresh_img = tk.PhotoImage(file="BD/15.gif")
         self.delete_img = tk.PhotoImage(file="BD/13.gif")
         self.update_img = tk.PhotoImage(file="BD/12.gif")
@@ -25,7 +26,8 @@ class Main(tk.Frame):
         toolbar = tk.Frame(bg='#a0dea0', bd=4)
         toolbar.pack(side=tk.TOP, fill=tk.X)
 
-        self.btn_open_dialog = tk.Button(toolbar, text='Добавить игрока', command=self.open_dialog, bg='#5da130', bd=0,
+        self.btn_open_dialog = tk.Button(toolbar, text='Добавить лекарственное средство ',
+                                         command=self.open_dialog, bg='#5da130', bd=0,
                                          compound=tk.TOP, image=self.add_img)
         self.btn_open_dialog.pack(side=tk.LEFT)
 
@@ -46,27 +48,32 @@ class Main(tk.Frame):
                                 bd=0, compound=tk.TOP, image=self.refresh_img)
         btn_refresh.pack(side=tk.LEFT)
 
-        self.tree.column('user_id', width=50, anchor=tk.CENTER)
-        self.tree.column('name', width=180, anchor=tk.CENTER)
-        self.tree.column('sex', width=140, anchor=tk.CENTER)
-        self.tree.column('old', width=140, anchor=tk.CENTER)
-        self.tree.column('score', width=140, anchor=tk.CENTER)
+        self.tree.column('code', width=50, anchor=tk.CENTER)
+        self.tree.column('name_of_the_medicine', width=150, anchor=tk.CENTER)
+        self.tree.column('application', width=120, anchor=tk.CENTER)
+        self.tree.column('quantity', width=120, anchor=tk.CENTER)
+        self.tree.column('price', width=50, anchor=tk.CENTER)
+        self.tree.column('country_of_origin', width=160, anchor=tk.CENTER)
 
-        self.tree.heading('user_id', text='ID')
-        self.tree.heading('name', text='Имя игрока')
-        self.tree.heading('sex', text='Пол игрока')
-        self.tree.heading('old', text='Возраст игрока')
-        self.tree.heading('score', text='Результат игрока')
+        self.tree.heading('code', text='Код')
+        self.tree.heading('name_of_the_medicine', text='Название препарата')
+        self.tree.heading('application', text='Применение')
+        self.tree.heading('quantity', text='Количество')
+        self.tree.heading('price', text='Цена')
+        self.tree.heading('country_of_origin', text='Страна-производитель')
 
         self.tree.pack()
 
-    def records(self, user_id, name, sex, old, score):
-        self.db.insert_data(user_id, name, sex, old, score)
+    def records(self, code, name_of_the_medicine, application, quantity, price, country_of_origin):
+        self.db.insert_data(code, name_of_the_medicine, application, quantity, price, country_of_origin)
         self.view_records()
 
-    def update_record(self, user_id, name, sex, old, score):
-        self.db.cur.execute("""UPDATE users SET user_id=?, name=?, sex=?, old=?, score=? WHERE user_id=?""",
-                            (user_id, name, sex, old, score, self.tree.set(self.tree.selection()[0], '#1')))
+    def update_record(self, code, name_of_the_medicine, application, quantity, price, country_of_origin):
+        self.db.cur.execute("""UPDATE Лекарственные_средства SET code=?, name_of_the_medicine=?, application=?,
+         quantity=?, 
+        price=?,  country_of_origin=? WHERE code=?""",
+                            (code, name_of_the_medicine, application, quantity, price, country_of_origin,
+                             self.tree.set(self.tree.selection()[0], '#1')))
         self.db.con.commit()
         self.view_records()
 
@@ -77,13 +84,14 @@ class Main(tk.Frame):
 
     def delete_records(self):
         for selection_item in self.tree.selection():
-            self.db.cur.execute("""DELETE FROM users WHERE user_id=?""", (self.tree.set(selection_item, '#1'),))
+            self.db.cur.execute("""DELETE FROM Лекарственные_средства WHERE code=?""", (self.tree.set(selection_item,
+                                                                                                      '#1'),))
         self.db.con.commit()
         self.view_records()
 
-    def search_records(self, score):
-        score = (score,)
-        self.db.cur.execute("""SELECT * FROM users WHERE score>?""", score)
+    def search_records(self, code):
+        code = ("%" + code + "%",)
+        self.db.cur.execute("""SELECT * FROM Лекарственные_средства WHERE code LIKE ?""", code)
         [self.tree.delete(i) for i in self.tree.get_children()]
         [self.tree.insert('', 'end', values=row) for row in self.db.cur.fetchall()]
 
@@ -106,46 +114,51 @@ class Child(tk.Toplevel):
         self.btn_ok = ttk.Button(self, text='Добавить')
         self.entry_score = ttk.Entry(self)
         self.entry_old = ttk.Entry(self)
-        self.combobox = ttk.Combobox(self, values=[u'1', u'2'])
+        self.entry_old = ttk.Entry(self)
         self.entry_name = ttk.Entry(self)
+        self.entry_description = ttk.Entry(self)
         self.entry_description = ttk.Entry(self)
         self.init_child()
         self.view = app
 
     def init_child(self):
-        self.title('Добавить игрока')
+        self.title('Добавить лекарственное средство')
         self.geometry('400x220+400+300')
         self.resizable(False, False)
 
-        label_description = tk.Label(self, text='Номер')
+        label_description = tk.Label(self, text='Код')
         label_description.place(x=50, y=25)
-        self.entry_description.place(x=110, y=25)
+        self.entry_description.place(x=190, y=25)
 
-        label_name = tk.Label(self, text='Имя')
+        label_name = tk.Label(self, text='Название препарата')
         label_name.place(x=50, y=50)
-        self.entry_name.place(x=110, y=50)
+        self.entry_name.place(x=190, y=50)
 
-        label_sex = tk.Label(self, text='Пол')
+        label_sex = tk.Label(self, text='Применение')
         label_sex.place(x=50, y=75)
-        self.combobox.current(0)
-        self.combobox.place(x=110, y=75)
+        self.entry_name.place(x=190, y=75)
 
-        label_old = tk.Label(self, text='Возраст')
+        label_old = tk.Label(self, text='Количество')
         label_old.place(x=50, y=100)
-        self.entry_old.place(x=110, y=100)
+        self.entry_old.place(x=190, y=100)
 
-        label_score = tk.Label(self, text='Результат')
+        label_score = tk.Label(self, text='Цена')
         label_score.place(x=50, y=125)
-        self.entry_score.place(x=110, y=125)
+        self.entry_score.place(x=190, y=125)
+
+        label_score = tk.Label(self, text='Страна-производитель')
+        label_score.place(x=50, y=150)
+        self.entry_score.place(x=190, y=150)
 
         btn_cancel = ttk.Button(self, text='Закрыть', command=self.destroy)
-        btn_cancel.place(x=300, y=170)
+        btn_cancel.place(x=300, y=180)
 
-        self.btn_ok.place(x=220, y=170)
+        self.btn_ok.place(x=220, y=180)
         self.btn_ok.bind('<Button-1>', lambda event: self.view.records(self.entry_description.get(),
                                                                        self.entry_name.get(),
-                                                                       self.combobox.get(),
                                                                        self.entry_old.get(),
+                                                                       self.entry_old.get(),
+                                                                       self.entry_score.get(),
                                                                        self.entry_score.get()))
 
         self.grab_set()
@@ -161,11 +174,12 @@ class Update(Child):
     def init_edit(self):
         self.title("Редактировать запись")
         btn_edit = ttk.Button(self, text="Редактировать")
-        btn_edit.place(x=205, y=170)
+        btn_edit.place(x=205, y=180)
         btn_edit.bind('<Button-1>', lambda event: self.view.update_record(self.entry_description.get(),
                                                                           self.entry_name.get(),
-                                                                          self.combobox.get(),
+                                                                          self.entry_name.get(),
                                                                           self.entry_old.get(),
+                                                                          self.entry_score.get(),
                                                                           self.entry_score.get()))
         self.btn_ok.destroy()
 
@@ -202,16 +216,18 @@ class DB:
         with sq.connect('BD/АПТЕКА.db') as self.con:
             self.cur = self.con.cursor()
             self.cur.execute("""CREATE TABLE IF NOT EXISTS Лекарственные_средства (
-                user_id INTEGER PRIMARY KEY AUTOINCREMENT,
-                name TEXT NOT NULL,
-                sex INTEGER NOT NULL DEFAULT 1,
-                old INTEGER,
-                score INTEGER
+                code INTEGER PRIMARY KEY AUTOINCREMENT,
+                name_of_the_medicine TEXT NOT NULL,
+                application TEXT NOT NULL,
+                quantity INTEGER,
+                price INTEGER,
+                country_of_origin TEXT NOT NULL
                 )""")
 
-    def insert_data(self, user_id, name, sex, old, score):
-        self.cur.execute("""INSERT INTO users(user_id, name, sex, old, score) VALUES (?, ?, ?, ?, ?)""",
-                         (user_id, name, sex, old, score))
+    def insert_data(self, code, name_of_the_medicine, application,  quantity, price, country_of_origin):
+        self.cur.execute("""INSERT INTO Лекарственные_средства(code, name_of_the_medicine, application, quantity, price, 
+        country_of_origin) VALUES (?, ?, ?, ?, ?, ?)""",
+                         (code, name_of_the_medicine, application,  quantity, price, country_of_origin))
         self.con.commit()
 
 

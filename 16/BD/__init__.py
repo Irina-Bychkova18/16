@@ -8,3 +8,13 @@ with sq.connect('АПТЕКА.db') as con:
  quantity INTEGER,
  price INTEGER,
  country_of_origin TEXT NOT NULL)""")
+ cur.execute("INSERT INTO Лекарственные_средства VALUES (1, 'Афобазол', лечение ран, "
+                  "22, 1000, Россия)")
+ cur.execute("INSERT INTO Лекарственные_средства VALUES (2, 'Гаргазон', лечение ожогов, 19, 800, США)")
+ cur.execute("INSERT INTO Лекарственные_средства VALUES (3, 'Риномакс', лечение зубной боли, "
+                  "19, 900, Франция)")
+ cur.execute("INSERT INTO Лекарственные_средства VALUES (4, 'Ентриксамакс', лечение головной боли,"
+                  " 18, 1500, Германия)")
+ cur.execute("INSERT INTO Лекарственные_средства VALUES (5, 'Реканат', лечение ран, 20, 1100, США)")
+ cur.execute("INSERT INTO Лекарственные_средства VALUES (6, 'Ларималь', лечение ожогов, 20, 1100, "
+                  "Россия)")
